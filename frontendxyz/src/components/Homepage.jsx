@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+
 import chartImg from "../assets/chart.png";
-import { authFetch } from "../utils/authFetch";
+
+import { useNavigate } from "react-router-dom";
 
 const Homepage = ({ setShowSignUp }) => {
   // --- Fallback company data ---
@@ -18,29 +19,33 @@ const Homepage = ({ setShowSignUp }) => {
     { rank: 10, name: "Samsung", cap: "₹274,080 T", price: "₹8,378", country: "S. Korea", icon: "fas fa-mobile" },
   ];
 
-  // --- State for companies ---
-  const [companies, setCompanies] = useState(defaultCompanies);
+  const [companies, setCompanies] = useState([]);
+  const [rowsToShow, setRowsToShow] = useState(20);
+  const [customMode, setCustomMode] = useState(false);
+  const [year, setYear] = useState(""); // Selected year
+  const navigate = useNavigate();
 
-  // --- Fetch real companies from backend ---
+  const fetchCompanies = (selectedYear) => {
+    const url = selectedYear
+      ? `http://localhost:5001/api/companies1?year=${selectedYear}`
+      : `http://localhost:5001/api/companies1`;
+
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setCompanies(data);
+        else setCompanies([]);
+      })
+      .catch((err) => {
+        console.error(err);
+        setCompanies([]);
+      });
+  };
+
   useEffect(() => {
-   fetch("http://localhost:5001/api/companies")
-     .then((res) => res.json())
-     
-     .then((data) => {
-       if (Array.isArray(data)) {
-         setCompanies(data);
-         
-       } else {
-         console.error("Expected array but got:", data);
-         setCompanies([]);
-       }
-     })
-     .catch((err) => {
-       console.error(err);
-       setCompanies([]);
-     });
- }, []);
- 
+    fetchCompanies(year);
+  }, [year]);
+
 
   return (
     <div className="min-h-screen">
@@ -74,35 +79,97 @@ const Homepage = ({ setShowSignUp }) => {
 
       {/* Companies Table */}
       <section className="py-12 px-8">
-        <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">Explore Top Companies</h2>
+        <div className="min-h-screen flex flex-col items-center py-12">
+  <h1 className="text-3xl font-bold text-white mb-4 drop-shadow-lg text-center">
+    Explore Top Companies
+  </h1>
 
-        <div className="flex justify-center">
-          <div className="overflow-x-auto bg-white shadow-lg rounded-xl p-6 w-full max-w-6xl">
-             <table className="w-full bg-white shadow-xl rounded-lg overflow-hidden">
+  {/* Year selector */}
+  <div className="mb-6 flex justify-center items-center gap-2">
+    <label className="text-white font-semibold">Select Year:</label>
+    <select
+      className="border rounded p-1"
+      value={year}
+      onChange={(e) => setYear(e.target.value)}
+    >
+      <option value="2025">2025</option>
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+            <option value="2022">2022</option>
+            <option value="2021">2021</option>
+            <option value="2020">2020</option>
+    </select>
+  </div>
+
+  {/* Table wrapper */}
+  <div className="overflow-x-auto w-11/12 md:w-4/5 lg:w-3/4">
+    <table className="w-full bg-white shadow-xl rounded-lg overflow-hidden mx-auto">
+        
             <thead className="bg-gray-100 text-gray-800 text-left">
               <tr>
                 <th className="py-3 px-4">Rank</th>
                 <th className="py-3 px-4">Company</th>
-               
-                <th className="py-3 px-4">Share Price</th>
+                <th className="py-3 px-4">Symbol</th>
               </tr>
             </thead>
             <tbody className="text-gray-700">
-              {companies.map((company) => (
-                <tr key={company.id} className="border-b last:border-none hover:bg-gray-50 transition">
-                  <td className="py-3 px-4 font-semibold">{company.id}</td>
+              {companies.slice(0, rowsToShow).map((company) => (
+                <tr
+                  key={company.name} // Use name as key
+                  className="border-b last:border-none hover:bg-gray-50 transition"
+                >
+                  <td className="py-3 px-4 font-semibold">{company.rank}</td>
                   <td className="py-3 px-4 flex items-center gap-2">
                     <i className={`${company.symbol} text-lg text-gray-600`}></i>
-                    {company.name}
+                    <button
+                      className="text-blue-600 hover:underline"
+                      onClick={() =>
+                        navigate(`/company/${encodeURIComponent(company.name)}`)
+                      }
+                    >
+                      {company.name}
+                    </button>
                   </td>
-                 
-                  <td className="py-3 px-4">{company.share_price}</td>
+                  <td>{company.symbol}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+
+          <div className="flex items-center gap-2 mt-4">
+            <span>Show rows:</span>
+            <select
+              className="border rounded p-1"
+              value={customMode ? "custom" : rowsToShow}
+              onChange={(e) => {
+                if (e.target.value === "custom") setCustomMode(true);
+                else {
+                  setRowsToShow(Number(e.target.value));
+                  setCustomMode(false);
+                }
+              }}
+            >
+              {[5, 10, 15, 20, 50, companies.length].map((n) => (
+                <option key={n} value={n}>
+                  {n === companies.length ? "All" : n}
+                </option>
+              ))}
+              <option value="custom">Custom</option>
+            </select>
+
+            {customMode && (
+              <input
+                type="number"
+                min="1"
+                max={companies.length}
+                placeholder="Enter number"
+                className="border rounded p-1 w-20"
+                onChange={(e) => setRowsToShow(Number(e.target.value))}
+              />
+            )}
           </div>
-        </div>
+          </div>
+          </div>
       </section>
     </div>
   );

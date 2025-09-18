@@ -22,10 +22,13 @@ ChartJS.register(
 );
 
 const MarketCapTable = () => {
+    let mounted = true;
+
   const { companyName } = useParams();
-  const [activeTab, setActiveTab] = useState("Market Cap");
+  const [activeTab, setActiveTab] = useState("Basic EPS (₹)");
   const [chartData, setChartData] = useState(null);
   const [showMore, setShowMore] = useState(false);
+  const [companyRealName, setCompanyRealName] = useState("");
 
   const mainOptions = [
     "Basic EPS (₹)", "Diluted EPS (₹)", "Cash EPS (₹)", "Book Value/Share (₹)", "Dividend/Share (₹)"
@@ -51,33 +54,39 @@ const MarketCapTable = () => {
   useEffect(() => {
     if (!activeTab || !companyName) return;
 
-    fetch(`http://localhost:5001/api/company/${encodeURIComponent(companyName)}/metric/${encodeURIComponent(activeTab)}`)
-      .then(res => res.json())
-      .then(rows => {
-          console.log(companyName, activeTab, rows); 
-        if (!Array.isArray(rows) || rows.length === 0) {
-          setChartData(null);
-          return;
-        }
+   fetch(`http://localhost:5001/api/company/${encodeURIComponent(companyName)}/metric/${encodeURIComponent(activeTab)}`)
+  .then(res => res.json())
+  .then(data => {
+    // Use "data" returned from backend
+    setCompanyRealName(data.companyName); // ✅ correct reference
 
-        const labels = rows.map(r => r.fiscal_year);
-        const values = rows.map(r => Number(r.value));
+    const rows = data.values;             // ✅ rows array from backend
+    // console.log(companyName, activeTab, rows); 
 
-        setChartData({
-          labels,
-          datasets: [
-            {
-              label: activeTab,
-              data: values,
-              backgroundColor: "rgba(54,162,235,0.5)"
-            },
-          ],
-        });
-      })
-      .catch(err => {
-        console.error(err);
-        setChartData(null);
-      });
+    if (!Array.isArray(rows) || rows.length === 0) {
+      setChartData(null);
+      return;
+    }
+
+    const labels = rows.map(r => r.fiscal_year);
+    const values = rows.map(r => Number(r.value));
+
+    setChartData({
+      labels,
+      datasets: [
+        {
+          label: activeTab,
+          data: values,
+          backgroundColor: "rgba(54,162,235,0.5)"
+        },
+      ],
+    });
+  })
+  .catch(err => {
+    console.error(err);
+    setChartData(null);
+  });
+
   }, [activeTab, companyName]);
 
   return (
@@ -86,6 +95,7 @@ const MarketCapTable = () => {
 
         {/* Top 5 Tabs + More Dropdown */}
         <div className="bg-white shadow-lg rounded-xl p-4 mb-6 border">
+          <h3 className="text-lg font-semibold mb-3">{companyRealName}</h3>
           <h3 className="text-lg font-semibold mb-3">📊 Rank by</h3>
           <div className="flex flex-wrap gap-2">
 

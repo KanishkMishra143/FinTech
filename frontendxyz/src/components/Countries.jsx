@@ -1,36 +1,18 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Companies = () => {
   const [companies, setCompanies] = useState([]);
-  const [rowsToShow, setRowsToShow] = useState(10);
+  const [rowsToShow, setRowsToShow] = useState(20);
+const [customMode, setCustomMode] = useState(false);
+   const navigate = useNavigate();
 
   useEffect(() => {
     const loadCompanies = async () => {
       try {
-        // Fetch all companies
-        const res = await fetch("http://localhost:5001/api/companies");
+        const res = await fetch("http://localhost:5001/api/companies-with-metrics");
         const companiesData = await res.json();
-
-        // Fetch metrics for each company
-        const companiesWithMetrics = await Promise.all(
-          companiesData.map(async (company) => {
-            const metricsRes = await fetch(
-              `http://localhost:5001/api/company/${company.company_id}/metrics`
-            );
-            const metrics = await metricsRes.json();
-
-            // Only keep the three ratios we care about
-            const ratios = {
-              ROE: metrics.find((m) => m.name === "ROE")?.value || "-",
-              DebtEquity: metrics.find((m) => m.name === "Debt/Equity")?.value || "-",
-              CurrentRatio: metrics.find((m) => m.name === "Current Ratio")?.value || "-",
-            };
-
-            return { ...company, ...ratios };
-          })
-        );
-
-        setCompanies(companiesWithMetrics);
+        setCompanies(companiesData);
       } catch (err) {
         console.error("Error fetching companies or metrics:", err);
       }
@@ -40,48 +22,76 @@ const Companies = () => {
   }, []);
 
   return (
-    <div className="bg-gradient-to-r from-[#FFA366] to-[#C3F0DB] min-h-screen p-8 relative">
-      <h1 className="text-3xl font-bold text-center mb-10 text-gray-800">
-        Company Financial Ratios
+    <div className="bg-gradient-to-r from-[#FFA366] to-[#C3F0DB] min-h-screen flex flex-col items-center py-12">
+      <h1 className="text-3xl font-bold text-white mb-8 drop-shadow-lg">
+        Company Financial Ratios (2024)
       </h1>
 
-      <div className="flex justify-center">
-        <div className="overflow-x-auto bg-white shadow-lg rounded-xl p-6 w-full max-w-6xl">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b bg-gray-100">
-                <th className="p-3">Company Name</th>
-                <th className="p-3">ROE</th>
-                <th className="p-3">Debt/Equity</th>
-                <th className="p-3">Current Ratio</th>
+      <div className="overflow-x-auto w-11/12 md:w-4/5 lg:w-3/4 bg-white shadow-xl rounded-lg p-4">
+        <table className="w-full text-left border-collapse">
+          <thead className="bg-gray-100 text-gray-800">
+            <tr>
+              <th className="py-3 px-4">Company Name</th>
+              <th className="py-3 px-4">Basic EPS (₹)</th>
+              <th className="py-3 px-4">Diluted EPS (₹)</th>
+              <th className="py-3 px-4">Cash EPS (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {companies.slice(0, rowsToShow).map((company) => (
+              <tr key={company.company_id} className="border-b hover:bg-gray-50">
+                 <td className="py-3 px-4 flex items-center gap-2">
+                    <i className={`${company.symbol} text-lg text-gray-600`}></i>
+                    <button
+                      className="text-blue-600 hover:underline"
+                      onClick={() => navigate(`/company/${encodeURIComponent(company.name)}`)}
+                    >
+                      {company.name}
+                    </button>
+                  </td>
+                <td className="py-3 px-4">{company.Basic_eps}</td>
+                <td className="py-3 px-4">{company.Diluted_EPS}</td>
+                <td className="py-3 px-4">{company.Cash_EPS}</td>
               </tr>
-            </thead>
-            <tbody>
-              {companies.slice(0, rowsToShow).map((company) => (
-                <tr key={company.company_id} className="border-b hover:bg-gray-50">
-                  <td className="p-3 font-medium">{company.name}</td>
-                  <td className="p-3">{company.ROE}</td>
-                  <td className="p-3">{company.DebtEquity}</td>
-                  <td className="p-3">{company.CurrentRatio}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            ))}
+          </tbody>
+        </table>
 
-          {/* Rows selector */}
-          <div className="absolute bottom-4 right-4 flex items-center space-x-2 bg-white p-2 rounded shadow">
-            <span>Show rows:</span>
-            <select
-              className="border rounded p-1"
-              value={rowsToShow}
-              onChange={(e) => setRowsToShow(Number(e.target.value))}
-            >
-              {[5, 10, 15, 20, 50].map((n) => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
-          </div>
-        </div>
+        {/* Rows selector */}
+        <div className="flex items-center gap-2 mt-4">
+  <span>Show rows:</span>
+
+  <select
+    className="border rounded p-1"
+    value={customMode ? "custom" : rowsToShow}
+    onChange={(e) => {
+      if (e.target.value === "custom") {
+        setCustomMode(true);
+      } else {
+        setRowsToShow(Number(e.target.value));
+        setCustomMode(false);
+      }
+    }}
+  >
+    {[5, 10, 15, 20, 50, companies.length].map((n) => (
+      <option key={n} value={n}>
+        {n === companies.length ? "All" : n}
+      </option>
+    ))}
+    <option value="custom">Custom</option>
+  </select>
+
+  {customMode && (
+    <input
+      type="number"
+      min="1"
+      max={companies.length}
+      placeholder="Enter number"
+      className="border rounded p-1 w-20"
+      onChange={(e) => setRowsToShow(Number(e.target.value))}
+    />
+  )}
+</div>
       </div>
     </div>
   );
