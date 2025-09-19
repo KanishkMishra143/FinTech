@@ -431,7 +431,7 @@ app.get("/api/companies1", async (req, res) => {
 // A POST route to handle feedback submissions
 app.post("/api/feedback", async (req, res) => {
   const { rating, feedback } = req.body;
-
+``
   try {
     const query =
       "INSERT INTO feedback_entries (rating, feedback) VALUES ($1, $2) RETURNING *";

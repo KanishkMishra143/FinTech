@@ -20,7 +20,7 @@ const Feedback = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5003/api/feedback", {
+      const response = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rating, feedback }),
@@ -103,6 +103,7 @@ const Feedback = () => {
             <button
               type="submit"
               disabled={loading}
+                onClick={() => setIsSubmitted(true)}
               className="w-full bg-blue-500 text-white py-2 rounded-full font-semibold hover:bg-blue-600 transition mb-3 disabled:opacity-50"
             >
               {loading ? "Submitting..." : "Submit"}
