@@ -58,7 +58,7 @@ const CompaniesPage = () => {
             <thead className="bg-gray-100 text-gray-800 text-left">
               <tr>
                 <th className="py-3 px-4">Rank</th>
-                <th className="py-3 px-4">Comp</th>
+                <th className="py-3 px-4">Company</th>
                 <th className="py-3 px-4">Symbol</th>
                 <th className="py-3 px-4">Market Cap</th>
                 <th className="py-3 px-4">Price</th>

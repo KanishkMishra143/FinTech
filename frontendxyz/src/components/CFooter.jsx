@@ -10,60 +10,119 @@ const CFooter = () => {
     const [rating, setRating] = useState(0);
     const [hover, setHover] = useState(null);
     const [feedback, setFeedback] = useState("");
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
+      e.preventDefault(); // prevent page reload
+
+      if (rating === 0) {
+        alert("Please provide a rating!");
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const response = await fetch("http://localhost:5001/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rating, feedback }),
+        });
+
+        if (response.ok) {
+          alert("Thank you for your feedback!");
+          setIsSubmitted(true);
+        } else {
+          const errorData = await response.json();
+          alert("Submission failed: " + errorData.error);
+        }
+      } catch (error) {
+        console.error("Submission error:", error);
+        alert("An error occurred. Please try again later.");
+      } finally {
+        setLoading(false);
+        setShowFeedback(false); // Close modal on submission
+      }
+    };
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg shadow-md p-8 w-full max-w-md text-center border border-gray-300 relative">
-          {/* Close button */}
-          <button
-            onClick={() => setShowFeedback(false)}
-            className="absolute top-3 right-3 text-gray-600 hover:text-gray-900 text-lg font-bold"
-            aria-label="Close feedback form"
-          >
-            &times;
-          </button>
+          {isSubmitted ? (
+            <>
+              <h2 className="text-2xl font-bold text-black">Thank You!</h2>
+              <p className="text-sm text-gray-600 mt-2">
+                Your feedback has been successfully submitted.
+              </p>
+              <button
+                onClick={() => setShowFeedback(false)}
+                className="mt-4 bg-blue-500 text-white py-2 px-4 rounded-full font-semibold hover:bg-blue-600"
+              >
+                Close
+              </button>
+            </>
+          ) : (
+            <form onSubmit={handleSubmit}>
+              {/* Close button */}
+              <button
+                type="button"
+                onClick={() => setShowFeedback(false)}
+                className="absolute top-3 right-3 text-gray-600 hover:text-gray-900 text-lg font-bold"
+                aria-label="Close feedback form"
+              >
+                &times;
+              </button>
 
-          <img src={logo} alt="UptoSkills Logo" className="w-28 mx-auto mb-4" />
+              <img src={logo} alt="UptoSkills Logo" className="w-28 mx-auto mb-4" />
 
-          <h2 className="text-2xl font-bold text-black mb-1">We Value Your Opinion</h2>
-          <p className="text-sm text-gray-600 mb-6">Share your experience in scaling</p>
+              <h2 className="text-2xl font-bold text-black mb-1">We Value Your Opinion</h2>
+              <p className="text-sm text-gray-600 mb-6">Share your experience in scaling</p>
 
-          <div className="flex justify-center space-x-3 mb-6">
-            {[...Array(5)].map((_, index) => {
-              const starValue = index + 1;
-              return (
-                <FaStar
-                  key={starValue}
-                  size={32}
-                  className={`cursor-pointer transition ${
-                    starValue <= (hover || rating) ? "text-yellow-400" : "text-gray-300"
-                  }`}
-                  onClick={() => setRating(starValue)}
-                  onMouseEnter={() => setHover(starValue)}
-                  onMouseLeave={() => setHover(null)}
-                />
-              );
-            })}
-          </div>
+              <div className="flex justify-center space-x-3 mb-6">
+                {[...Array(5)].map((_, index) => {
+                  const starValue = index + 1;
+                  return (
+                    <FaStar
+                      key={starValue}
+                      size={32}
+                      className={`cursor-pointer transition ${
+                        starValue <= (hover || rating) ? "text-yellow-400" : "text-gray-300"
+                      }`}
+                      onClick={() => setRating(starValue)}
+                      onMouseEnter={() => setHover(starValue)}
+                      onMouseLeave={() => setHover(null)}
+                    />
+                  );
+                })}
+              </div>
 
-          <textarea
-            className="w-full border border-gray-400 rounded-md p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            rows="4"
-            placeholder="Submit your experience"
-            value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
-          ></textarea>
+              <textarea
+                className="w-full border border-gray-400 rounded-md p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                rows="4"
+                placeholder="Submit your experience"
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                required
+              ></textarea>
 
-          <button className="w-full bg-blue-500 text-white py-2 rounded-full font-semibold hover:bg-blue-600 transition mb-3">
-            Submit
-          </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-500 text-white py-2 rounded-full font-semibold hover:bg-blue-600 transition mb-3 disabled:opacity-50"
+              >
+                {loading ? "Submitting..." : "Submit"}
+              </button>
 
-          <button
-            onClick={() => setShowFeedback(false)}
-            className="text-gray-600 hover:underline text-sm"
-          >
-            No, Thanks!
-          </button>
+              <button
+                type="button"
+                onClick={() => setShowFeedback(false)}
+                className="text-gray-600 hover:underline text-sm"
+              >
+                No, Thanks!
+              </button>
+            </form>
+          )}
         </div>
       </div>
     );
