@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
+import { OAuth2Client } from "google-auth-library";
 
 dotenv.config();
 
@@ -14,6 +15,8 @@ app.use(cors());
 app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 // Nodemailer transporter setup
 const transporter = nodemailer.createTransport({
@@ -112,6 +115,67 @@ app.post("/api/auth/signin", async (req, res) => {
   } catch (err) {
     console.error("Signin error:", err);
     res.status(500).json({ message: "Error signing in", error: err.message });
+  }
+});
+
+// Google Signin Route
+app.post("/api/auth/google-signin", async (req, res) => {
+  const { token } = req.body;
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: GOOGLE_CLIENT_ID,
+    });
+    const { name, email, picture } = ticket.getPayload();
+
+    let userResult = await pool.query("SELECT * FROM users1 WHERE email = $1", [email]);
+    let user = userResult.rows[0];
+
+    if (user) {
+      const jwtToken = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "1h" });
+      return res.status(200).json({ message: "Login successful", user, token: jwtToken });
+    } else {
+      const tempToken = jwt.sign({ name, email }, JWT_SECRET, { expiresIn: "10m" });
+      return res.status(200).json({ tempToken, message: "User not found. Please complete registration." });
+    }
+  } catch (err) {
+    console.error("Google signin error:", err);
+    res.status(500).json({ message: "Error signing in with Google" });
+  }
+});
+
+// Google Signup Complete Route
+app.post("/api/auth/google-signup-complete", async (req, res) => {
+  const { tempToken, phone, password } = req.body;
+
+  if (!tempToken || !phone || !password) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  try {
+    const decodedToken = jwt.verify(tempToken, JWT_SECRET);
+    const { name, email } = decodedToken;
+
+    const existingUser = await pool.query(
+      "SELECT id FROM users1 WHERE email=$1 OR phone=$2",
+      [email, phone]
+    );
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({ message: "User with this email or phone already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const result = await pool.query(
+      "INSERT INTO users1 (fullname, email, phone, password) VALUES ($1,$2,$3,$4) RETURNING id, fullname, email",
+      [name, email, phone, hashedPassword]
+    );
+
+    const user = result.rows[0];
+
+    res.status(201).json({ message: "User registered successfully", user });
+  } catch (err) {
+    console.error("Google signup complete error:", err);
+    res.status(500).json({ message: "Error completing registration" });
   }
 });
 

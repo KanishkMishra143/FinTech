@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import logo from "../assets/logo.png";
+import { GoogleLogin, useGoogleOneTapLogin } from "@react-oauth/google";
 
-const SignUpPage = ({ setShowSignIn, setShowSignUp }) => {
+const SignUpPage = ({ setShowSignIn, setShowSignUp, setTempToken }) => {
   const [formData, setFormData] = useState({
     fullname: "",
     email: "",
@@ -54,6 +55,42 @@ const SignUpPage = ({ setShowSignIn, setShowSignUp }) => {
       setLoading(false);
     }
   };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const res = await fetch("http://localhost:5001/api/auth/google-signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token: credentialResponse.credential }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("user", JSON.stringify(data.user));
+          window.location.href = "/home";
+        } else {
+          setTempToken(data.tempToken);
+          setShowSignUp(false);
+        }
+      } else {
+        alert(data.message || "Google sign-in failed");
+      }
+    } catch (err) {
+      console.error("Google sign-in error:", err);
+      alert("Server error, please try again later.");
+    }
+  };
+
+  useGoogleOneTapLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: () => {
+      console.log("Login Failed");
+    },
+  });
 
   return (
     <div className="w-full max-w-5xl min-h-[60vh] mx-auto flex flex-col items-center justify-center bg-white text-black font-sans">
@@ -136,13 +173,14 @@ const SignUpPage = ({ setShowSignIn, setShowSignUp }) => {
           {loading ? "Signing Up..." : "Sign Up"}
         </button>
 
-        <button
-          type="button"
-          onClick={() => alert("Google Sign-Up")}
-          className="w-full bg-blue-500 text-white py-2 rounded-full font-semibold flex items-center justify-center gap-2 hover:bg-blue-600 transition"
-        >
-          <i className="fab fa-google text-white text-lg"></i> Sign Up with Google
-        </button>
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => {
+              console.log("Login Failed");
+            }}
+          />
+        </div>
 
         <p className="text-center mt-4 text-sm">
           Already have an account?{" "}

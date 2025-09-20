@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import logo from "../assets/logo.png";
+import { GoogleLogin, useGoogleOneTapLogin } from "@react-oauth/google";
 
-const SignInPage = ({ setShowSignUp, setShowSignIn }) => {
+const SignInPage = ({ setShowSignUp, setShowSignIn, setTempToken }) => {
   // --- Sign In state ---
   const [credentials, setCredentials] = useState({ identifier: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -46,6 +47,42 @@ const SignInPage = ({ setShowSignUp, setShowSignIn }) => {
       setLoading(false);
     }
   };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const res = await fetch("http://localhost:5001/api/auth/google-signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token: credentialResponse.credential }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("user", JSON.stringify(data.user));
+          window.location.href = "/home";
+        } else {
+          setTempToken(data.tempToken);
+          setShowSignIn(false);
+        }
+      } else {
+        alert(data.message || "Google sign-in failed");
+      }
+    } catch (err) {
+      console.error("Google sign-in error:", err);
+      alert("Server error, please try again later.");
+    }
+  };
+
+  useGoogleOneTapLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: () => {
+      console.log("Login Failed");
+    },
+  });
 
   // --- Recover Password submit ---
   const handleRecoverSubmit = async () => {
@@ -165,6 +202,15 @@ const SignInPage = ({ setShowSignUp, setShowSignIn }) => {
         >
           {loading ? "Signing In..." : "Sign In"}
         </button>
+
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => {
+              console.log("Login Failed");
+            }}
+          />
+        </div>
 
         <p className="text-center mt-4 text-sm">
           Don’t have an account?{" "}

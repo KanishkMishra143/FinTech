@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import LandingPage from "./components/LandingPage";
 import HowToUse from "./components/HowToUse";
@@ -10,6 +11,7 @@ import CompanyFinancialRatios from "./components/CompanyFinancialRatios";
 import UnlockAccess from "./components/UnlockAccess";
 import SignUpPage from "./components/SignUpPage";
 import SignInPage from "./components/SignInPage";
+import GoogleSignUp from "./components/GoogleSignUp";
 
 import CHeader from "./components/CHeader";
 import CFooter from "./components/CFooter";
@@ -36,9 +38,10 @@ function PublicLayout() {
 function App() {
   const [showSignUp, setShowSignUp] = useState(false);
   const [showSignIn, setShowSignIn] = useState(false);
+  const [tempToken, setTempToken] = useState(null);
 
   return (
-    <>
+    <GoogleOAuthProvider clientId="803155981028-5s8ehj9ntfgrno8u9v0igf58sm2i2eon.apps.googleusercontent.com">
       <Routes>
         <Route element={<PublicLayout />}>
           <Route
@@ -71,7 +74,7 @@ function App() {
             >
               &times;
             </button>
-            <SignUpPage setShowSignIn={setShowSignIn} setShowSignUp={setShowSignUp} />
+            <SignUpPage setShowSignIn={setShowSignIn} setShowSignUp={setShowSignUp} setTempToken={setTempToken} />
           </div>
         </div>
       )}
@@ -86,11 +89,26 @@ function App() {
             >
               &times;
             </button>
-            <SignInPage setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn} />
+            <SignInPage setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn} setTempToken={setTempToken} />
           </div>
         </div>
       )}
-    </>
+
+      {/* Google SignUp Modal */}
+      {tempToken && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md relative">
+            <button
+              onClick={() => setTempToken(null)}
+              className="absolute top-2 right-2 text-gray-500 text-2xl"
+            >
+              &times;
+            </button>
+            <GoogleSignUp tempToken={tempToken} setShowSignIn={setShowSignIn} />
+          </div>
+        </div>
+      )}
+    </GoogleOAuthProvider>
   );
 }
 
