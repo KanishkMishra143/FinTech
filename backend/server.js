@@ -29,10 +29,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const cache = {
-  companies: null,
-  lastUpdated: null,
-};
+const cache = {};
 
 const metricsCache = {
   companies: null,
@@ -555,15 +552,15 @@ const METRIC_MAP = {
 // --- API endpoint ---
 // --- API endpoint ---
 app.get("/api/companies1", async (req, res) => {
+  const year = parseInt(req.query.year) || new Date().getFullYear(); // Default to current year
+  const cacheKey = `companies_${year}`;
   const CACHE_TTL = 3600000; // 1 hour in milliseconds
 
-  if (cache.companies && cache.lastUpdated && (Date.now() - cache.lastUpdated < CACHE_TTL)) {
-    return res.json(cache.companies);
+  if (cache[cacheKey] && (Date.now() - cache[cacheKey].lastUpdated < CACHE_TTL)) {
+    return res.json(cache[cacheKey].data);
   }
 
   try {
-    const year = parseInt(req.query.year); // optional ?year=2023
-
     const result = await pool.query(
       `
       SELECT 
@@ -579,9 +576,9 @@ app.get("/api/companies1", async (req, res) => {
       LEFT JOIN company_metrics cm ON c.name = cm.name
       LEFT JOIN metric_values mv ON c.company_id = mv.company_id
       LEFT JOIN financial_metrics fm ON mv.metric_id = fm.metric_id
-      WHERE ($1::int IS NULL OR mv.fiscal_year = $1)
+      WHERE mv.fiscal_year = $1
       `,
-      [isNaN(year) ? null : year]
+      [year]
     );
 
     // Group values by company
@@ -649,8 +646,10 @@ app.get("/api/companies1", async (req, res) => {
     scored.forEach((c, i) => (c.rank = i + 1));
 
     // Store the result in the cache
-    cache.companies = scored;
-    cache.lastUpdated = Date.now();
+    cache[cacheKey] = {
+      data: scored,
+      lastUpdated: Date.now(),
+    };
 
     res.json(scored);
   } catch (err) {

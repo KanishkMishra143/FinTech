@@ -1,5 +1,6 @@
 import React from "react";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import howtouse from "../assets/howtouse.mp4";
 
 function HowToUse() {
   return (
@@ -30,8 +31,7 @@ function HowToUse() {
 
             {/* dashed upload box */}
             <div className="w-full max-w-2xl h-72 mx-auto mt-5 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-              <p className="mb-3 text-gray-600">Click here to upload a video</p>
-              <div className="text-3xl">🎥</div>
+              <video src={howtouse} controls className="w-full h-full"></video>
             </div>
           </div>
         </div>

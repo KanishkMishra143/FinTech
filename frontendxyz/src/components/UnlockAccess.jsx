@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import logo from "../assets/logo.png";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import Modal from "./Modal";
+import howtouse from "../assets/howtouse.mp4";
 
 const UnlockAccess = ({ setShowSignUp, setShowSignIn }) => {
   const [showVideo, setShowVideo] = useState(false);
@@ -17,15 +18,7 @@ const UnlockAccess = ({ setShowSignUp, setShowSignIn }) => {
 
   const videoContent = (
     <div>
-      <iframe
-        width="100%"
-        height="315"
-        src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-        title="YouTube video player"
-        frameBorder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-      ></iframe>
+      <video src={howtouse} controls className="w-full h-full"></video>
     </div>
   );
 
