@@ -6,9 +6,11 @@ const CompaniesPage = () => {
   const [rowsToShow, setRowsToShow] = useState(20);
   const [customMode, setCustomMode] = useState(false);
   const [year, setYear] = useState(""); // Selected year
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const fetchCompanies = (selectedYear) => {
+    setLoading(true);
     const url = selectedYear
       ? `http://localhost:5001/api/companies1?year=${selectedYear}`
       : `http://localhost:5001/api/companies1`;
@@ -18,10 +20,12 @@ const CompaniesPage = () => {
       .then((data) => {
         if (Array.isArray(data)) setCompanies(data);
         else setCompanies([]);
+        setLoading(false);
       })
       .catch((err) => {
         console.error(err);
         setCompanies([]);
+        setLoading(false);
       });
   };
 
@@ -54,41 +58,45 @@ const CompaniesPage = () => {
         </div>
 
         <div className="overflow-x-auto w-11/12 md:w-4/5 lg:w-3/4">
-          <table className="w-full bg-white shadow-xl rounded-lg overflow-hidden">
-            <thead className="bg-gray-100 text-gray-800 text-left">
-              <tr>
-                <th className="py-3 px-4">Rank</th>
-                <th className="py-3 px-4">Company</th>
-                <th className="py-3 px-4">Symbol</th>
-                <th className="py-3 px-4">Market Cap</th>
-                <th className="py-3 px-4">Price</th>
-              </tr>
-            </thead>
-            <tbody className="text-gray-700">
-              {companies.slice(0, rowsToShow).map((company) => (
-                <tr
-                  key={company.name} // Use name as key
-                  className="border-b last:border-none hover:bg-gray-50 transition"
-                >
-                  <td className="py-3 px-4 font-semibold">{company.rank}</td>
-                  <td className="py-3 px-4 flex items-center gap-2">
-                    <i className={`${company.symbol} text-lg text-gray-600`}></i>
-                    <button
-                      className="text-blue-600 hover:underline"
-                      onClick={() =>
-                        navigate(`/company/${encodeURIComponent(company.name)}`)
-                      }
-                    >
-                      {company.name}
-                    </button>
-                  </td>
-                  <td>{company.symbol}</td>
-                  <td className="py-3 px-4">{company.market_cap || "N/A"}</td>
-                  <td className="py-3 px-4">{company.share_price || "N/A"}</td>
+          {loading ? (
+            <div className="text-center">Loading...</div>
+          ) : (
+            <table className="w-full bg-white shadow-xl rounded-lg overflow-hidden">
+              <thead className="bg-gray-100 text-gray-800 text-left">
+                <tr>
+                  <th className="py-3 px-4">Rank</th>
+                  <th className="py-3 px-4">Company</th>
+                  <th className="py-3 px-4">Symbol</th>
+                  <th className="py-3 px-4">Market Cap</th>
+                  <th className="py-3 px-4">Price</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="text-gray-700">
+                {companies.slice(0, rowsToShow).map((company) => (
+                  <tr
+                    key={company.name} // Use name as key
+                    className="border-b last:border-none hover:bg-gray-50 transition"
+                  >
+                    <td className="py-3 px-4 font-semibold">{company.rank}</td>
+                    <td className="py-3 px-4 flex items-center gap-2">
+                      <i className={`${company.symbol} text-lg text-gray-600`}></i>
+                      <button
+                        className="text-blue-600 hover:underline"
+                        onClick={() =>
+                          navigate(`/company/${encodeURIComponent(company.name)}`)
+                        }
+                      >
+                        {company.name}
+                      </button>
+                    </td>
+                    <td>{company.symbol}</td>
+                    <td className="py-3 px-4">{company.market_cap || "N/A"}</td>
+                    <td className="py-3 px-4">{company.share_price || "N/A"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
 
           <div className="flex items-center gap-2 mt-4">
             <span>Show rows:</span>

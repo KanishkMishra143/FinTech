@@ -6,7 +6,7 @@ import LandingPage from "./components/LandingPage";
 import HowToUse from "./components/HowToUse";
 import MarketCapTable from "./components/MarketCapTable";
 import CompaniesPage from "./components/CompaniesPage";
-import Countries from "./components/Countries";
+import CompanyFinancialRatios from "./components/CompanyFinancialRatios";
 import UnlockAccess from "./components/UnlockAccess";
 import SignUpPage from "./components/SignUpPage";
 import SignInPage from "./components/SignInPage";
@@ -43,67 +43,57 @@ function App() {
         />
 
         {/* Protected Routes */}
-          <Route element={<ProtectedRoute />}>
-        <Route
-          path="/home"
-          element={
-            
+        <Route element={<ProtectedRoute />}>
+          <Route
+            path="/home"
+            element={
               <MainLayout setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn}>
                 <LandingPage />
               </MainLayout>
-           
-          }
-        />
-        <Route
-          path="/how-to-use"
-          element={
-           
+            }
+          />
+          <Route
+            path="/how-to-use"
+            element={
               <MainLayout setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn}>
                 <HowToUse />
               </MainLayout>
-          
-          }
-        />
-         <Route
-  path="/company/:companyName"
-  element={
-    <MainLayout setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn}>
-      <MarketCapTable />
-    </MainLayout>
-  }
-/>
-        <Route
-          path="/companies"
-          element={
-           
-              <MainLayout setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn}>
-                <CompaniesPage />
-              </MainLayout>
-        
-          }
-        />
-        <Route
-          path="/countries"
-          element={
-           
-              <MainLayout setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn}>
-                <Countries />
-              </MainLayout>
-          
-          }
-        />
-        <Route
-          path="/marketcap"
-          element={
-        
+            }
+          />
+          <Route
+            path="/company/:companyName"
+            element={
               <MainLayout setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn}>
                 <MarketCapTable />
               </MainLayout>
-            
-          }
-        />
+            }
+          />
+          <Route
+            path="/companies"
+            element={
+              <MainLayout setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn}>
+                <CompaniesPage />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/financial-ratios"
+            element={
+              <MainLayout setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn}>
+                <CompanyFinancialRatios />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/marketcap"
+            element={
+              <MainLayout setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn}>
+                <MarketCapTable />
+              </MainLayout>
+            }
+          />
+        </Route>
 
-      </Route>
         {/* Redirect unknown routes to UnlockAccess */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

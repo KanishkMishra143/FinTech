@@ -27,7 +27,7 @@ const CHeader = () => {
           </li>
 
           <li className="cursor-pointer hover:text-blue-500">
-            <Link to="/countries">Company's financial ratios</Link>
+            <Link to="/financial-ratios">Company's financial ratios</Link>
           </li>
 
           <li className="cursor-pointer hover:text-blue-500">

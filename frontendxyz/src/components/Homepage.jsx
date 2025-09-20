@@ -23,9 +23,11 @@ const Homepage = ({ setShowSignUp }) => {
   const [rowsToShow, setRowsToShow] = useState(20);
   const [customMode, setCustomMode] = useState(false);
   const [year, setYear] = useState(""); // Selected year
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const fetchCompanies = (selectedYear) => {
+    setLoading(true);
     const url = selectedYear
       ? `http://localhost:5001/api/companies1?year=${selectedYear}`
       : `http://localhost:5001/api/companies1`;
@@ -35,10 +37,12 @@ const Homepage = ({ setShowSignUp }) => {
       .then((data) => {
         if (Array.isArray(data)) setCompanies(data);
         else setCompanies([]);
+        setLoading(false);
       })
       .catch((err) => {
         console.error(err);
         setCompanies([]);
+        setLoading(false);
       });
   };
 
@@ -103,7 +107,10 @@ const Homepage = ({ setShowSignUp }) => {
 
   {/* Table wrapper */}
   <div className="overflow-x-auto w-11/12 md:w-4/5 lg:w-3/4">
-    <table className="w-full bg-white shadow-xl rounded-lg overflow-hidden mx-auto">
+    {loading ? (
+      <div className="text-center">Loading...</div>
+    ) : (
+      <table className="w-full bg-white shadow-xl rounded-lg overflow-hidden mx-auto">
         
             <thead className="bg-gray-100 text-gray-800 text-left">
               <tr>
@@ -135,6 +142,7 @@ const Homepage = ({ setShowSignUp }) => {
               ))}
             </tbody>
           </table>
+    )}
 
           <div className="flex items-center gap-2 mt-4">
             <span>Show rows:</span>
