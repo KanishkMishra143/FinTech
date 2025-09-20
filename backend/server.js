@@ -26,6 +26,11 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const cache = {
+  companies: null,
+  lastUpdated: null,
+};
+
 // Auth middleware to protect routes
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -451,6 +456,12 @@ const METRIC_MAP = {
 // --- API endpoint ---
 // --- API endpoint ---
 app.get("/api/companies1", async (req, res) => {
+  const CACHE_TTL = 3600000; // 1 hour in milliseconds
+
+  if (cache.companies && cache.lastUpdated && (Date.now() - cache.lastUpdated < CACHE_TTL)) {
+    return res.json(cache.companies);
+  }
+
   try {
     const year = parseInt(req.query.year); // optional ?year=2023
 
@@ -537,6 +548,10 @@ app.get("/api/companies1", async (req, res) => {
     // Sort and rank
     scored.sort((a, b) => b.score - a.score);
     scored.forEach((c, i) => (c.rank = i + 1));
+
+    // Store the result in the cache
+    cache.companies = scored;
+    cache.lastUpdated = Date.now();
 
     res.json(scored);
   } catch (err) {
