@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import logo from "../assets/logo.png";
 import { FaStar } from "react-icons/fa";
+import Modal from "./Modal";
 
 const CFooter = () => {
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   // Feedback component content inside CFooter
   const Feedback = () => {
@@ -128,22 +131,27 @@ const CFooter = () => {
     );
   };
 
+  const privacyPolicyContent = (
+    <div>
+      <p>This is a placeholder for your privacy policy. You should replace this with your actual privacy policy.</p>
+    </div>
+  );
+
+  const termsAndConditionsContent = (
+    <div>
+      <p>This is a placeholder for your terms and conditions. You should replace this with your actual terms and conditions.</p>
+    </div>
+  );
+
   return (
     <>
       <footer className="mt-auto px-16 py-10">
         <div className="flex flex-wrap gap-10 justify-between">
           {/* Column 1 */}
           <div className="flex-1 min-w-[280px]">
-            <h4 className="font-semibold mb-3">What is the market capitalization of a company?</h4>
+            <h4 className="font-semibold mb-3">Disclaimer</h4>
             <p className="text-sm text-gray-800">
-              The market capitalization sometimes referred as Marketcap, is the value of a publicly listed company. <br />
-              In most cases it can be easily calculated by multiplying the share price with the amount of outstanding shares.
-            </p>
-            <p className="text-sm mt-4 text-gray-800">
-              <strong>DISCLAIMER</strong>
-              <br />
-              UpToSkills is not associated in any way with __WebsiteName.com <br />
-              Stock prices are delayed, the delay can range from a few minutes to several hours.
+              The data provided on this website is for informational purposes only and should not be considered as financial advice. We do not guarantee the accuracy, completeness, or timeliness of the information. All stock prices are delayed. UpToSkills is not affiliated with any other website or company.
             </p>
           </div>
 
@@ -163,15 +171,15 @@ const CFooter = () => {
 
             <h4 className="font-semibold mt-5 mb-2">Links</h4>
             <div className="space-y-1">
-              <a href="#" className="text-gray-800 underline font-medium block">Privacy Policy</a>
-              <a href="#" className="text-gray-800 underline font-medium block">Terms & Conditions</a>
+              <button onClick={() => setShowPrivacyPolicy(true)} className="text-gray-800 underline font-medium block">Privacy Policy</button>
+              <button onClick={() => setShowTerms(true)} className="text-gray-800 underline font-medium block">Terms & Conditions</button>
             </div>
 
             <div className="space-y-1">
-              <a href="#" className="hover:text-blue-500 text-3xl"><i className="fab fa-facebook"></i></a>
-              <a href="#" className="hover:text-blue-500 text-3xl"><i className="fab fa-x-twitter"></i></a>
-              <a href="#" className="hover:text-blue-500 text-3xl"><i className="fab fa-instagram"></i></a>
-              <a href="#" className="hover:text-blue-500 text-3xl"><i className="fab fa-linkedin"></i></a>
+              <a href="https://www.facebook.com/Uptoskills/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 text-3xl"><i className="fab fa-facebook"></i></a>
+              <a href="https://x.com/skillsupto" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 text-3xl"><i className="fab fa-x-twitter"></i></a>
+              <a href="https://www.instagram.com/uptoskills/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 text-3xl"><i className="fab fa-instagram"></i></a>
+              <a href="https://www.linkedin.com/company/uptoskills/posts/?feedView=all" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 text-3xl"><i className="fab fa-linkedin"></i></a>
             </div>
           </div>
         </div>
@@ -182,6 +190,12 @@ const CFooter = () => {
 
       {/* Render Feedback modal when toggled */}
       {showFeedback && <Feedback />}
+
+      {/* Render Privacy Policy modal when toggled */}
+      {showPrivacyPolicy && <Modal title="Privacy Policy" content={privacyPolicyContent} onClose={() => setShowPrivacyPolicy(false)} />}
+
+      {/* Render Terms & Conditions modal when toggled */}
+      {showTerms && <Modal title="Terms & Conditions" content={termsAndConditionsContent} onClose={() => setShowTerms(false)} />}
     </>
   );
 };

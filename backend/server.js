@@ -31,6 +31,11 @@ const cache = {
   lastUpdated: null,
 };
 
+const metricsCache = {
+  companies: null,
+  lastUpdated: null,
+};
+
 // Auth middleware to protect routes
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -241,6 +246,12 @@ app.get("/api/companies", async (req, res) => {
 //   }
 // });
 app.get("/api/companies-with-metrics", async (req, res) => {
+  const CACHE_TTL = 3600000; // 1 hour in milliseconds
+
+  if (metricsCache.companies && metricsCache.lastUpdated && (Date.now() - metricsCache.lastUpdated < CACHE_TTL)) {
+    return res.json(metricsCache.companies);
+  }
+
   try {
     const result = await pool.query(`
       SELECT c.company_id, c.name, fm.name AS metric_name, mv.value
@@ -268,6 +279,10 @@ app.get("/api/companies-with-metrics", async (req, res) => {
     const filteredCompanies = Object.values(companiesMap).filter(c =>
       c.Basic_eps != null && c.Diluted_EPS != null && c.Cash_EPS != null
     );
+
+    // Store the result in the cache
+    metricsCache.companies = filteredCompanies;
+    metricsCache.lastUpdated = Date.now();
 
     res.json(filteredCompanies);
   } catch (err) {

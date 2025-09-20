@@ -23,11 +23,11 @@ const CHeader = () => {
       <div className="flex items-center gap-6 font-medium flex-1 justify-center">
         <ul className="flex gap-6">
           <li className="cursor-pointer hover:text-blue-500">
-            <Link to="/companies">Ranking by companies</Link>
+            <Link to="/companies">Ranking by Companies</Link>
           </li>
 
           <li className="cursor-pointer hover:text-blue-500">
-            <Link to="/countries">companies Financial ratios </Link>
+            <Link to="/countries">Company's financial ratios</Link>
           </li>
 
           <li className="cursor-pointer hover:text-blue-500">
