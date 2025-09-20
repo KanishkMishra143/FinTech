@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import logo from "../assets/logo.png";
 
-const SignInPage = ({ setShowSignUp }) => {
+const SignInPage = ({ setShowSignUp, setShowSignIn }) => {
   // --- Sign In state ---
   const [credentials, setCredentials] = useState({ identifier: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -9,9 +9,9 @@ const SignInPage = ({ setShowSignUp }) => {
   // --- Recover Password state ---
   const [showRecover, setShowRecover] = useState(false);
   const [recoverIdentifier, setRecoverIdentifier] = useState("");
-  const [userId, setUserId] = useState(null);
+  const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [step, setStep] = useState(1); // 1 = verify email/phone, 2 = reset password
+  const [step, setStep] = useState(1); // 1 = verify email/phone, 2 = enter otp, 3 = reset password
 
   // --- Handle input changes ---
   const handleChange = (e) => {
@@ -51,16 +51,16 @@ const SignInPage = ({ setShowSignUp }) => {
   const handleRecoverSubmit = async () => {
     if (step === 1) {
       try {
-        const response = await fetch("http://localhost:5001/api/auth/verify-user", {
+        const response = await fetch("http://localhost:5001/api/auth/request-password-reset", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ identifier: recoverIdentifier }),
+          body: JSON.stringify({ email: recoverIdentifier }),
         });
 
         const data = await response.json();
 
         if (response.ok) {
-          setUserId(data.userId); // backend must return userId
+          alert("OTP sent to your email. Please check your spam folder if you don't see it.");
           setStep(2);
         } else {
           alert(data.message || "User not found");
@@ -69,12 +69,31 @@ const SignInPage = ({ setShowSignUp }) => {
         console.error(err);
         alert("Server error");
       }
-    } else {
+    } else if (step === 2) {
       try {
-        const response = await fetch("http://localhost:5001/api/auth/reset-password", {
+        const response = await fetch("http://localhost:5001/api/auth/verify-otp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, newPassword }),
+          body: JSON.stringify({ email: recoverIdentifier, otp }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setStep(3);
+        } else {
+          alert(data.message || "Invalid or expired OTP");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Server error");
+      }
+    } else {
+      try {
+        const response = await fetch("http://localhost:5001/api/auth/reset-password-with-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: recoverIdentifier, otp, newPassword }),
         });
 
         const data = await response.json();
@@ -85,6 +104,7 @@ const SignInPage = ({ setShowSignUp }) => {
           setStep(1);
           setNewPassword("");
           setRecoverIdentifier("");
+          setOtp("");
         } else {
           alert(data.message || "Error resetting password");
         }
@@ -148,7 +168,14 @@ const SignInPage = ({ setShowSignUp }) => {
 
         <p className="text-center mt-4 text-sm">
           Don’t have an account?{" "}
-          <button onClick={() => setShowSignUp(true)} className="text-blue-600 font-semibold">
+          <button
+            type="button"
+            onClick={() => {
+              setShowSignIn(false);
+              setShowSignUp(true);
+            }}
+            className="text-blue-600 font-semibold"
+          >
             Sign Up
           </button>
         </p>
@@ -175,11 +202,11 @@ const SignInPage = ({ setShowSignUp }) => {
             {step === 1 && (
               <>
                 <label className="block mb-2 text-sm font-medium text-left">
-                  Enter Your Email or Phone
+                  Enter Your Email
                 </label>
                 <input
-                  type="text"
-                  placeholder="Email or phone"
+                  type="email"
+                  placeholder="Email"
                   value={recoverIdentifier}
                   onChange={(e) => setRecoverIdentifier(e.target.value)}
                   className="w-full px-4 py-2 border rounded-lg mb-4 focus:ring focus:ring-blue-300 outline-none"
@@ -187,8 +214,24 @@ const SignInPage = ({ setShowSignUp }) => {
               </>
             )}
 
-            {/* Step 2: New Password */}
+            {/* Step 2: OTP */}
             {step === 2 && (
+              <>
+                <label className="block mb-2 text-sm font-medium text-left">
+                  Enter OTP
+                </label>
+                <input
+                  type="text"
+                  placeholder="OTP"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="w-full px-4 py-2 border rounded-lg mb-4 focus:ring focus:ring-blue-300 outline-none"
+                />
+              </>
+            )}
+
+            {/* Step 3: New Password */}
+            {step === 3 && (
               <>
                 <label className="block mb-2 text-sm font-medium text-left">
                   Enter Your New Password
@@ -207,7 +250,7 @@ const SignInPage = ({ setShowSignUp }) => {
               onClick={handleRecoverSubmit}
               className="w-full bg-blue-500 text-white py-2 rounded-full font-semibold hover:bg-blue-600 transition"
             >
-              {step === 1 ? "Next" : "Reset Password"}
+              {step === 1 ? "Send OTP" : step === 2 ? "Verify OTP" : "Reset Password"}
             </button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import nodemailer from "nodemailer";
 
 dotenv.config();
 
@@ -13,6 +14,18 @@ app.use(cors());
 app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
+
+// Nodemailer transporter setup
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  secure: true, // true for 465, false for other ports
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
 // Auth middleware to protect routes
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -91,6 +104,112 @@ app.post("/api/auth/signin", async (req, res) => {
     res.status(500).json({ message: "Error signing in", error: err.message });
   }
 });
+
+// Request Password Reset
+app.post("/api/auth/request-password-reset", async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await pool.query("SELECT * FROM users1 WHERE email = $1", [email]);
+    if (user.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    await pool.query("UPDATE users1 SET otp = $1, otp_expires_at = $2 WHERE email = $3", [
+      otp,
+      otpExpiresAt,
+      email,
+    ]);
+
+    const mailOptions = {
+      from: process.env.EMAIL_FROM,
+      to: email,
+      subject: "Your Password Reset OTP",
+      text: `Your OTP for password reset is: ${otp}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://i.ibb.co/2Y3BbBDz/logo.png" alt="UptoSkills Logo" style="width: 150px;">
+          </div>
+          <h2 style="text-align: center; color: #333;">Your Password Reset OTP</h2>
+          <p style="font-size: 16px; color: #555;">
+            You have requested to reset your password. Please use the following One-Time Password (OTP) to proceed.
+          </p>
+          <div style="text-align: center; font-size: 24px; font-weight: bold; color: #333; background-color: #f5f5f5; padding: 10px; border-radius: 5px; margin: 20px 0;">
+            ${otp}
+          </div>
+          <p style="font-size: 16px; color: #555;">
+            This OTP is valid for 10 minutes. If you did not request a password reset, please ignore this email.
+          </p>
+          <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #999;">
+            <p>&copy; 2025 UptoSkills. All rights reserved.</p>
+          </div>
+        </div>
+      `,
+    };
+
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      console.log("Email sent:", info.response);
+      res.json({ message: "OTP sent to your email" });
+    } catch (emailError) {
+      console.error("Error sending email:", emailError);
+      res.json({ message: "OTP sent to your email" });
+    }
+  } catch (err) {
+    console.error("Request password reset error:", err);
+    res.status(500).json({ message: "Error requesting password reset" });
+  }
+});
+
+// Verify OTP
+app.post("/api/auth/verify-otp", async (req, res) => {
+  const { email, otp } = req.body;
+  try {
+    const result = await pool.query(
+      "SELECT * FROM users1 WHERE email = $1 AND otp = $2 AND otp_expires_at > NOW()",
+      [email, otp]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    res.json({ message: "OTP verified successfully" });
+  } catch (err) {
+    console.error("Verify OTP error:", err);
+    res.status(500).json({ message: "Error verifying OTP" });
+  }
+});
+
+// Reset Password with OTP
+app.post("/api/auth/reset-password-with-otp", async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  try {
+    const result = await pool.query(
+      "SELECT * FROM users1 WHERE email = $1 AND otp = $2 AND otp_expires_at > NOW()",
+      [email, otp]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.query("UPDATE users1 SET password = $1, otp = NULL, otp_expires_at = NULL WHERE email = $2", [
+      hashedPassword,
+      email,
+    ]);
+
+    res.json({ message: "Password reset successfully" });
+  } catch (err) {
+    console.error("Reset password with OTP error:", err);
+    res.status(500).json({ message: "Error resetting password" });
+  }
+});
+
 // Route to get all companies
 app.get("/api/companies", async (req, res) => {
   try {

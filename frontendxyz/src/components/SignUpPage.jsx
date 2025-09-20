@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import logo from "../assets/logo.png";
 
-const SignUpPage = ({ setShowSignIn }) => {
+const SignUpPage = ({ setShowSignIn, setShowSignUp }) => {
   const [formData, setFormData] = useState({
     fullname: "",
     email: "",
@@ -42,6 +42,7 @@ const SignUpPage = ({ setShowSignIn }) => {
 
       if (response.ok) {
         alert("Registration successful! Please log in.");
+        setShowSignUp(false);
         setShowSignIn(true); // Show SignIn modal after signup
       } else {
         alert(data.message || "Sign up failed");
@@ -145,7 +146,14 @@ const SignUpPage = ({ setShowSignIn }) => {
 
         <p className="text-center mt-4 text-sm">
           Already have an account?{" "}
-          <button onClick={() => setShowSignIn(true)} className="text-blue-600 font-semibold">
+          <button
+            type="button"
+            onClick={() => {
+              setShowSignUp(false);
+              setShowSignIn(true);
+            }}
+            className="text-blue-600 font-semibold"
+          >
             Sign In
           </button>
         </p>

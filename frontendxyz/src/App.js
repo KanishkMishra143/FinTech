@@ -117,7 +117,7 @@ function App() {
             >
               &times;
             </button>
-            <SignUpPage />
+            <SignUpPage setShowSignIn={setShowSignIn} setShowSignUp={setShowSignUp} />
           </div>
         </div>
       )}
@@ -132,7 +132,7 @@ function App() {
             >
               &times;
             </button>
-            <SignInPage />
+            <SignInPage setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn} />
           </div>
         </div>
       )}
