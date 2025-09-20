@@ -19,7 +19,7 @@ const SearchBar = () => {
         onKeyDown={(e) => {
           if (e.key === "Enter") handleSearch(); // ✅ trigger on Enter
         }}
-        placeholder="Company name, ticker..."
+        placeholder="Search Companies..."
         className="px-3 py-2 border rounded"
       />
       <button

@@ -14,12 +14,11 @@ function HowToUse() {
           </h2>
 
           <ul className="mb-10 space-y-3 list-disc list-inside text-gray-700">
-            <li>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</li>
-            <li>Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.</li>
-            <li>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</li>
-            <li>Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.</li>
-            <li>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</li>
-            <li>Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.</li>
+            <li>Explore Company Rankings: On the homepage and the "Ranking by companies" page, you can view a ranked list of top companies. You can sort the table by different metrics to see how companies stack up against each other.</li>
+            <li>Dive into Financial Ratios: The "companies Financial ratios" page provides a detailed breakdown of key financial ratios for each company. This can help you get a deeper understanding of a company's financial health.</li>
+            <li>View Company Details: Click on any company name in the tables to view a detailed page with more information about that company, including its financial metrics and historical data.</li>
+            <li>Search for Companies: Use the search bar in the header to quickly find a specific company you're interested in.</li>
+            <li>Provide Feedback: We'd love to hear your feedback! You can use the "UptoSkills.Support" link in the footer to send us your comments and suggestions.</li>
           </ul>
 
           <h3 className="text-lg font-semibold uppercase mb-4">
