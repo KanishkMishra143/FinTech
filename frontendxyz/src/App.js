@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "./App.css";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -41,7 +41,7 @@ function App() {
   const [tempToken, setTempToken] = useState(null);
 
   return (
-    <GoogleOAuthProvider clientId="803155981028-5s8ehj9ntfgrno8u9v0igf58sm2i2eon.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <Routes>
         <Route element={<PublicLayout />}>
           <Route
