@@ -1,11 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import logo from "../assets/logo.png";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Modal from "./Modal";
-import CFooter from "./CFooter";
 
 const UnlockAccess = ({ setShowSignUp, setShowSignIn }) => {
   const [showVideo, setShowVideo] = useState(false);
+  const location = useLocation();
+  const from = location.state?.from?.pathname;
+
+  useEffect(() => {
+    localStorage.removeItem("token");
+    if (from) {
+      setShowSignIn(true);
+    }
+  }, [from, setShowSignIn]);
 
   const videoContent = (
     <div>
@@ -76,7 +84,16 @@ const UnlockAccess = ({ setShowSignUp, setShowSignIn }) => {
         </section>
       </main>
 
-      <CFooter />
+      <footer className="mt-auto px-16 py-10">
+        <div className="flex flex-wrap gap-10 justify-center">
+          <div className="flex-1 min-w-[280px] max-w-2xl text-center">
+            <h4 className="font-semibold mb-3">Disclaimer</h4>
+            <p className="text-sm text-gray-800">
+              The data provided on this website is for informational purposes only and should not be considered as financial advice. We do not guarantee the accuracy, completeness, or timeliness of the information. All stock prices are delayed. UpToSkills is not affiliated with any other website or company.
+            </p>
+          </div>
+        </div>
+      </footer>
       {showVideo && <Modal title="How to Use FinTech" content={videoContent} onClose={() => setShowVideo(false)} />}
     </div>
   );

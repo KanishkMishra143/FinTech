@@ -1,10 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import logo from "../assets/logo.png";
 import SearchBar from "./SearchBar";
 
 const CHeader = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/");
+  };
 
   return (
     <nav className="flex justify-between items-center px-10 py-4 bg-white shadow-md">
@@ -39,6 +45,12 @@ const CHeader = () => {
       {/* SearchBar on far right */}
       <div className="flex items-center ml-8">
         <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        <button
+          onClick={handleLogout}
+          className="ml-4 px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-700"
+        >
+          Logout
+        </button>
       </div>
     </nav>
   );

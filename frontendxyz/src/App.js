@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./App.css";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 
 import LandingPage from "./components/LandingPage";
 import HowToUse from "./components/HowToUse";
@@ -18,15 +18,19 @@ import ChatWidget from "./components/ChatWidget";
 import ProtectedRoute from "./components/ProtectedRoute"; // new component
 
 // ---- Layout wrapper for all pages after signup ----
-function MainLayout({ children, setShowSignUp, setShowSignIn }) {
+function ProtectedLayout({ children, setShowSignUp, setShowSignIn }) {
   return (
     <div className="bg-gradient-to-r from-[#FFA366] to-[#C3F0DB] p-6 min-h-screen">
       <CHeader setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn} />
-      {children}
+      <Outlet />
       <ChatWidget />
       <CFooter />
     </div>
   );
+}
+
+function PublicLayout() {
+  return <Outlet />;
 }
 
 function App() {
@@ -36,62 +40,22 @@ function App() {
   return (
     <>
       <Routes>
-        {/* Public Unlock Page */}
-        <Route
-          path="/"
-          element={<UnlockAccess setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn} />}
-        />
+        <Route element={<PublicLayout />}>
+          <Route
+            path="/"
+            element={<UnlockAccess setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn} />}
+          />
+        </Route>
 
-        {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
-          <Route
-            path="/home"
-            element={
-              <MainLayout setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn}>
-                <LandingPage />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/how-to-use"
-            element={
-              <MainLayout setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn}>
-                <HowToUse />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/company/:companyName"
-            element={
-              <MainLayout setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn}>
-                <MarketCapTable />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/companies"
-            element={
-              <MainLayout setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn}>
-                <CompaniesPage />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/financial-ratios"
-            element={
-              <MainLayout setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn}>
-                <CompanyFinancialRatios />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/marketcap"
-            element={
-              <MainLayout setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn}>
-                <MarketCapTable />
-              </MainLayout>
-            }
-          />
+          <Route element={<ProtectedLayout setShowSignUp={setShowSignUp} setShowSignIn={setShowSignIn} />}>
+            <Route path="/home" element={<LandingPage />} />
+            <Route path="/how-to-use" element={<HowToUse />} />
+            <Route path="/company/:companyName" element={<MarketCapTable />} />
+            <Route path="/companies" element={<CompaniesPage />} />
+            <Route path="/financial-ratios" element={<CompanyFinancialRatios />} />
+            <Route path="/marketcap" element={<MarketCapTable />} />
+          </Route>
         </Route>
 
         {/* Redirect unknown routes to UnlockAccess */}
