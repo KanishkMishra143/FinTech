@@ -233,6 +233,26 @@ app.get("/api/companies", async (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 });
+
+// Search Suggestions
+app.get("/api/search-suggestions", async (req, res) => {
+  const { q } = req.query;
+  if (!q) {
+    return res.json([]);
+  }
+
+  try {
+    const result = await pool.query(
+      "SELECT name, symbol FROM companies_data WHERE name ILIKE $1 OR symbol ILIKE $1 LIMIT 10",
+      [`%${q}%`]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Search suggestions error:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
 // app.get("/api/companies1", async (req, res) => {
 //   try {
 //     const result = await pool.query(
